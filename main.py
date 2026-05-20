@@ -81,14 +81,15 @@ def scan_target(target_dir: Path, output_base: Path) -> List[str]:
     return summary
 
 
-def write_summary(summary: List[str], output_base: Path, target_dir: Path) -> None:
+def write_summary(summary: List[str], summary_base: Path, target_dir: Path) -> None:
     """
     Write summary.txt in aligned table format for a specific target_dir.
     """
     if not summary:
         return
 
-    summary_file = output_base / f"{target_dir.name}_summary.txt"
+    summary_base.mkdir(parents=True, exist_ok=True)
+    summary_file = summary_base / f"{target_dir.name}_summary.txt"
     formatted = [(Path(link).parent.name, f"config -> {target}") for link, target in
                  (item.split(" -> ") for item in summary)]
     formatted.sort(key=lambda x: x[0])
@@ -109,14 +110,19 @@ def write_summary(summary: List[str], output_base: Path, target_dir: Path) -> No
 
 def main() -> None:
     target_dirs = [
-        Path(r"F:\Code\1.MyGitHub"),
-        Path(r"F:\Code\3.CatToCatGithub")
+        Path(r"/Users/elias/EliasLi/03.code-github"),
+        Path(r"/Users/elias/EliasLi/03.code-cpa"),
+        Path(r"/Users/elias/EliasLi/03.code-cpa-github"),
+        Path(r"/Users/elias/EliasLi/01.record/Metatron"),
     ]
-    output_base = Path.cwd()
+
+    project_root = Path(__file__).resolve().parent
+    output_base = project_root / "repos"
+    summary_base = project_root / "summary"
 
     for target_dir in target_dirs:
         summary = scan_target(target_dir, output_base)
-        write_summary(summary, output_base, target_dir)
+        write_summary(summary, summary_base, target_dir)
 
 
 if __name__ == "__main__":
