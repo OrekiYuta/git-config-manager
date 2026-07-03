@@ -110,10 +110,9 @@ def write_summary(summary: List[str], summary_base: Path, target_dir: Path) -> N
 
 def main() -> None:
     target_dirs = [
-        Path(r"/Users/elias/EliasLi/03.code-github"),
-        Path(r"/Users/elias/EliasLi/03.code-cpa"),
-        Path(r"/Users/elias/EliasLi/03.code-cpa-github"),
-        Path(r"/Users/elias/EliasLi/01.record/Metatron"),
+        Path(r"/Users/elias/repo1"),
+        Path(r"/Users/elias/repo2"),
+        Path(r"/Users/elias/repo3")
     ]
 
     project_root = Path(__file__).resolve().parent
