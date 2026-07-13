@@ -214,6 +214,6 @@ def proxy_status() -> None:
 # --------------------------------------------------------------------------- #
 if __name__ == "__main__":
     # Uncomment the action you want to run:
-    proxy_set()
+    # proxy_set()
     # proxy_clear()
-    # proxy_status()
+    proxy_status()

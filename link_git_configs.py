@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from typing import List
 
@@ -108,6 +109,18 @@ def write_summary(summary: List[str], summary_base: Path, target_dir: Path) -> N
     print("\n")
 
 
+def clean_output(output_base: Path) -> None:
+    """
+    Remove the existing output directory so that stale links to repos that
+    no longer exist are not left behind. Recreated fresh on the next scan.
+    """
+    if output_base.exists():
+        shutil.rmtree(output_base)
+        log(f"Cleaned existing output dir: {output_base}", "CLEAN")
+    output_base.mkdir(parents=True, exist_ok=True)
+    print("-" * 60)
+
+
 def main() -> None:
     target_dirs = [
         Path(r"/Users/elias/repo1"),
@@ -118,6 +131,8 @@ def main() -> None:
     project_root = Path(__file__).resolve().parent
     output_base = project_root / "repos"
     summary_base = project_root / "summary"
+
+    clean_output(output_base)
 
     for target_dir in target_dirs:
         summary = scan_target(target_dir, output_base)

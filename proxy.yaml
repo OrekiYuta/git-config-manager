@@ -9,7 +9,7 @@ proxy:
   # http / https / socks5 / socks5h
   scheme: http
   host: 127.0.0.1
-  port: 10809
+  port: 7879
 
   # Optional authentication (leave empty if not needed)
   username:
