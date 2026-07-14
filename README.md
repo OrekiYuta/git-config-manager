@@ -35,6 +35,7 @@ git-config-manager/
 │   ├── link_git_hooks.py     # collect .git/hooks/commit-msg via symlinks
 │   ├── set_git_configs.py    # global proxy + per-repo PAT / identity / proxy
 │   └── set_git_hooks.py      # install lowercase commit-msg hook in each repo
+├── link_git_all.py           # run both link_git_* collectors
 ├── config.example.yaml       # template (committed)
 ├── config.yaml               # real config (git-ignored, holds PATs)
 ├── output/                   # generated (git-ignored)
@@ -74,6 +75,7 @@ flowchart LR
 Run the scripts from the project root:
 
 ```bash
+py link_git_all.py            # run both collectors below
 py src/link_git_configs.py    # collect .git/config into output/
 py src/link_git_hooks.py      # collect commit-msg hooks into output/
 py src/set_git_configs.py     # apply proxy / per-repo config
@@ -82,6 +84,7 @@ py src/set_git_hooks.py       # install lowercase commit-msg hook
 
 | Script                    | Role                                                                             |
 | ------------------------- | -------------------------------------------------------------------------------- |
+| `link_git_all.py`         | **Aggregate.** Runs `link_git_configs.py` and `link_git_hooks.py` in sequence.   |
 | `src/link_git_configs.py` | **Read-only collector.** Symlinks each repo's `.git/config` into `output/git_config/`, with an `output/summary/*_git_config_summary.txt` table. |
 | `src/link_git_hooks.py`   | **Read-only collector.** Symlinks each repo's `.git/hooks/commit-msg` into `output/git_hooks/`, with an `output/summary/*_git_hooks_summary.txt` table. |
 | `src/set_git_configs.py`  | **Writer.** Manages the global git proxy, and injects PAT / name / email / repo proxy into each repo's `.git/config`. |
