@@ -16,8 +16,10 @@ What it does:
   login and each account's repos are configured correctly.
 - **Proxy management** — set / clear the **global** git proxy, and optionally a
   **per-repo** proxy for selected directories.
-- **Config collection** — gather every repo's `.git/config` via symlinks into
-  one folder for easy inspection.
+- **Commit hooks** — install a `commit-msg` hook into every repo that forces the
+  commit message to lowercase.
+- **Config / hook collection** — gather every repo's `.git/config` and
+  `commit-msg` hook via symlinks into one folder for easy inspection.
 
 All settings live in a single **`config.yaml`**. Copy `config.example.yaml`
 to `config.yaml` and edit it. `config.yaml` is git-ignored because it contains
@@ -30,11 +32,14 @@ git-config-manager/
 ├── src/
 │   ├── config_loader.py      # shared YAML loader
 │   ├── link_git_configs.py   # collect .git/config via symlinks
-│   └── set_git_configs.py    # global proxy + per-repo PAT / identity / proxy
+│   ├── link_git_hooks.py     # collect .git/hooks/commit-msg via symlinks
+│   ├── set_git_configs.py    # global proxy + per-repo PAT / identity / proxy
+│   └── set_git_hooks.py      # install lowercase commit-msg hook in each repo
 ├── config.example.yaml       # template (committed)
 ├── config.yaml               # real config (git-ignored, holds PATs)
 ├── output/                   # generated (git-ignored)
-│   ├── repos/                # symlinks to each .git/config
+│   ├── git_config/           # symlinks to each .git/config
+│   ├── git_hooks/            # symlinks to each .git/hooks/commit-msg
 │   └── summary/              # per-target summary tables
 ├── LICENSE
 └── README.md
@@ -46,37 +51,41 @@ git-config-manager/
 flowchart LR
     CFG["config.yaml<br/>(proxy + repos)"]
 
-    subgraph LINK["src/link_git_configs.py"]
-        L["Scan repos[].path<br/>for git repositories"]
-        L2["Symlink each .git/config<br/>into output/repos/ + write output/summary/"]
-        L --> L2
+    subgraph LINK["link_* (read-only collectors)"]
+        L["link_git_configs.py<br/>symlink .git/config -> output/git_config/"]
+        H["link_git_hooks.py<br/>symlink commit-msg -> output/git_hooks/"]
     end
 
-    subgraph SET["src/set_git_configs.py"]
+    subgraph SET["set_* (writers)"]
         direction TB
-        G["Global proxy<br/>set / clear / status<br/>(git config --global)"]
-        R["Per-repo config: for every repo<br/>- user.name / user.email<br/>- PAT into origin url<br/>- repo-level proxy (if proxy: true)"]
+        G["set_git_configs.py<br/>- global proxy (set/clear/status)<br/>- per-repo user / PAT / repo-proxy"]
+        HK["set_git_hooks.py<br/>install commit-msg hook<br/>(force lowercase message)"]
     end
 
     CFG --> LINK
     CFG --> SET
 
-    L2 -.-> OUT["output/repos/ &amp; output/summary/"]
-    G -.-> GC["~/.gitconfig"]
-    R -.-> RC["each repo's .git/config"]
+    L -.-> OUT["output/git_config/, output/git_hooks/, output/summary/"]
+    H -.-> OUT
+    G -.-> GC["~/.gitconfig + each repo's .git/config"]
+    HK -.-> HKF["each repo's .git/hooks/commit-msg"]
 ```
 
 Run the scripts from the project root:
 
 ```bash
 py src/link_git_configs.py    # collect .git/config into output/
+py src/link_git_hooks.py      # collect commit-msg hooks into output/
 py src/set_git_configs.py     # apply proxy / per-repo config
+py src/set_git_hooks.py       # install lowercase commit-msg hook
 ```
 
 | Script                    | Role                                                                             |
 | ------------------------- | -------------------------------------------------------------------------------- |
-| `src/link_git_configs.py` | **Read-only collector.** Finds every repo under `repos[].path` and symlinks its `.git/config` into `output/repos/`, with an `output/summary/` table. |
+| `src/link_git_configs.py` | **Read-only collector.** Symlinks each repo's `.git/config` into `output/git_config/`, with an `output/summary/*_git_config_summary.txt` table. |
+| `src/link_git_hooks.py`   | **Read-only collector.** Symlinks each repo's `.git/hooks/commit-msg` into `output/git_hooks/`, with an `output/summary/*_git_hooks_summary.txt` table. |
 | `src/set_git_configs.py`  | **Writer.** Manages the global git proxy, and injects PAT / name / email / repo proxy into each repo's `.git/config`. |
+| `src/set_git_hooks.py`    | **Writer.** Installs a `commit-msg` hook in each repo that lowercases the commit message. Skips repos that already have a foreign hook; `clear_hooks()` only removes hooks it installed. |
 | `src/config_loader.py`    | Shared YAML loader (uses PyYAML if installed, else a tiny built-in parser).      |
 
 ## License

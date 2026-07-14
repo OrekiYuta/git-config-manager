@@ -93,7 +93,7 @@ def write_summary(summary: List[str], summary_base: Path, target_dir: Path) -> N
         return
 
     summary_base.mkdir(parents=True, exist_ok=True)
-    summary_file = summary_base / f"{target_dir.name}_summary.txt"
+    summary_file = summary_base / f"{target_dir.name}_git_config_summary.txt"
     formatted = [(Path(link).parent.name, f"config -> {target}") for link, target in
                  (item.split(" -> ") for item in summary)]
     formatted.sort(key=lambda x: x[0])
@@ -153,7 +153,7 @@ def main() -> None:
 
     # Project root is the parent of this src/ directory.
     project_root = Path(__file__).resolve().parent.parent
-    output_base = project_root / "output" / "repos"
+    output_base = project_root / "output" / "git_config"
     summary_base = project_root / "output" / "summary"
 
     clean_output(output_base)
