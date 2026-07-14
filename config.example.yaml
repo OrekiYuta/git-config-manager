@@ -1,0 +1,49 @@
+# =========================================================================== #
+# git-config-manager — unified configuration
+#
+# Copy this file to  config.yaml  and fill in real values.
+# config.yaml is git-ignored because it contains secrets (GitHub PATs).
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Global proxy  (set_git_configs.py: set_global_proxy / clear / status)
+# host/port form the proxy URL: <scheme>://<host>:<port>
+# If username/password are set: <scheme>://<username>:<password>@<host>:<port>
+# Also used as the proxy source for repos that have `proxy: true`.
+# --------------------------------------------------------------------------- #
+proxy:
+  # http / https / socks5 / socks5h
+  scheme: http
+  host: 127.0.0.1
+  port: 7879
+
+  # Optional authentication (leave empty if not needed)
+  username:
+  password:
+
+  # Apply proxy to http.proxy (http remotes)
+  http: true
+  # Apply proxy to https.proxy (https remotes)
+  https: true
+
+# --------------------------------------------------------------------------- #
+# Per-repo config  (set_git_configs.py: set_repos_config)
+# Each entry maps a directory to a GitHub identity. Every git repo found under
+# `path` gets the same user.name / user.email, and its `origin` https github
+# remote url is rewritten to embed the PAT so pushes need no interactive auth.
+# Optional `proxy: true` also writes a repo-level http/https proxy (from the
+# `proxy:` section above), scoped to that repo only (not global).
+# link_git_configs.py also scans these paths.
+# --------------------------------------------------------------------------- #
+repos:
+  - path: /Users/elias/repo1
+    name: user1
+    email: user1@gmail.com
+    pat: ghp_replace_with_real_token
+    proxy: true
+
+  - path: /Users/elias/repo2
+    name: user2
+    email: user2@gmail.com
+    pat: ghp_replace_with_real_token
+    proxy: false

@@ -1,4 +1,8 @@
 /.idea/
-/repos/
-/summary
+/output/
+/venv/
+__pycache__/
+
+# Contains secrets (GitHub PATs). Use config.example.yaml as the template.
+config.yaml
 

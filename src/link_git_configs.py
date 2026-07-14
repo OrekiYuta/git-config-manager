@@ -1,6 +1,9 @@
 import shutil
+import sys
 from pathlib import Path
 from typing import List
+
+from config_loader import load_config
 
 
 def log(msg: str, level: str = "INFO", indent: int = 0) -> None:
@@ -121,16 +124,37 @@ def clean_output(output_base: Path) -> None:
     print("-" * 60)
 
 
-def main() -> None:
-    target_dirs = [
-        Path(r"/Users/elias/repo1"),
-        Path(r"/Users/elias/repo2"),
-        Path(r"/Users/elias/repo3")
-    ]
+def load_targets() -> List[Path]:
+    """Load the directories to scan from config.yaml (the `repos[].path`)."""
+    data = load_config()
+    repos = data.get("repos")
+    if not isinstance(repos, list) or not repos:
+        log("Missing or empty 'repos' list in config.yaml", "ERROR")
+        sys.exit(1)
 
-    project_root = Path(__file__).resolve().parent
-    output_base = project_root / "repos"
-    summary_base = project_root / "summary"
+    targets: List[Path] = []
+    seen = set()
+    for acc in repos:
+        if not isinstance(acc, dict) or not acc.get("path"):
+            continue
+        p = str(acc["path"])
+        if p not in seen:
+            seen.add(p)
+            targets.append(Path(p))
+
+    if not targets:
+        log("No 'path' found in any repos entry in config.yaml", "ERROR")
+        sys.exit(1)
+    return targets
+
+
+def main() -> None:
+    target_dirs = load_targets()
+
+    # Project root is the parent of this src/ directory.
+    project_root = Path(__file__).resolve().parent.parent
+    output_base = project_root / "output" / "repos"
+    summary_base = project_root / "output" / "summary"
 
     clean_output(output_base)
 
