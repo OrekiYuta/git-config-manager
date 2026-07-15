@@ -14,14 +14,8 @@ Usage:
     py link_git_all.py
 """
 
-import sys
-from pathlib import Path
-
-# The collector modules live in src/; make them importable.
-sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
-
-import link_git_configs
-import link_git_hooks
+from src import link_git_configs
+from src import link_git_hooks
 
 
 def log(msg: str, level: str = "INFO") -> None:

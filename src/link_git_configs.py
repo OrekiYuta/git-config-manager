@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-from config_loader import load_config
+from src.config_loader import load_config
 
 
 def log(msg: str, level: str = "INFO", indent: int = 0) -> None:

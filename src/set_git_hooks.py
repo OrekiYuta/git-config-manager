@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-from config_loader import load_config, log
+from src.config_loader import load_config, log
 
 HOOK_NAME = "commit-msg"
 MARKER = "# git-config-manager:lowercase-commit-msg"

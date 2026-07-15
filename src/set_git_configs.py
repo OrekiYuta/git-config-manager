@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from config_loader import load_config, log
+from src.config_loader import load_config, log
 
 
 # --------------------------------------------------------------------------- #
@@ -303,7 +303,7 @@ def clear_repo(repo: Path, clear_user: bool = False) -> None:
     origin = get_origin_url(repo)
     if origin and is_https_github(origin):
         stripped = url_without_pat(origin)
-        if stripped and stripped != origin and set_origin_url(repo, stripped):
+        if stripped is not None and stripped != origin and set_origin_url(repo, stripped):
             log(f"origin -> {stripped}", "URL")
         else:
             log("origin had no PAT to strip", "SKIP")
