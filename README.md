@@ -17,7 +17,7 @@ What it does:
 - **Proxy management** — set / clear the **global** git proxy, and optionally a
   **per-repo** proxy for selected directories.
 - **Commit hooks** — install a `commit-msg` hook into every repo that forces the
-  commit message to lowercase.
+  commit message to lowercase, or optionally disable hooks per repo group.
 - **Config / hook collection** — gather every repo's `.git/config` and
   `commit-msg` hook via symlinks into one folder for easy inspection.
 
@@ -75,7 +75,7 @@ flowchart LR
 Run the scripts from the project root:
 
 ```bash
-py main.py                    # apply repo config + install hooks + collect outputs
+py main.py                    # apply repo config and collect config links
 py src/link_git_configs.py    # collect .git/config into output/
 py src/link_git_hooks.py      # collect commit-msg hooks into output/
 py src/set_git_configs.py     # apply proxy / per-repo config
@@ -84,14 +84,37 @@ py src/set_git_hooks.py       # install lowercase commit-msg hook
 
 | Script                    | Role                                                                             |
 | ------------------------- | -------------------------------------------------------------------------------- |
-| `main.py`                 | **Aggregate.** Runs the full workflow: repo config, hook install, then both collectors. |
+| `main.py`                 | **Aggregate.** Applies repo config and collects config links. Hook installation and collection are optional, commented-out steps. |
 | `src/link_git_configs.py` | **Read-only collector.** Symlinks each repo's `.git/config` into `output/git_config/`, with an `output/summary/*_git_config_summary.txt` table. |
 | `src/link_git_hooks.py`   | **Read-only collector.** Symlinks each repo's `.git/hooks/commit-msg` into `output/git_hooks/`, with an `output/summary/*_git_hooks_summary.txt` table. |
-| `src/set_git_configs.py`  | **Writer.** Manages the global git proxy, and injects PAT / name / email / repo proxy into each repo's `.git/config`. |
+| `src/set_git_configs.py`  | **Writer.** Manages the global git proxy, and sets PAT / name / email / repo proxy / optional hook settings in each repo's `.git/config`. |
 | `src/set_git_hooks.py`    | **Writer.** Installs a `commit-msg` hook in each repo that lowercases the commit message. Skips repos that already have a foreign hook; `clear_hooks()` only removes hooks it installed. |
 | `src/config_loader.py`    | Shared YAML loader (uses PyYAML if installed, else a tiny built-in parser).      |
+
+## Disabling hooks
+
+Set `disable_hooks: true` on a `repos` entry to apply it to every repository
+found under that entry's `path`:
+
+```yaml
+repos:
+  - path: /path/to/repos
+    name: user1
+    disable_hooks: true
+```
+
+The repo config step sets the local `core.hooksPath` to `.git/no-hooks`,
+overwriting any previous local value. This disables **all** hooks only if that
+path contains no executable hooks; the tool warns if the path already exists.
+It does not delete hook files. The lowercase hook, if installed in `.git/hooks`,
+will not run while this setting is active.
+
+If `disable_hooks` is omitted or `false`, the tool leaves `core.hooksPath`
+unchanged. Changing `true` to `false` does not restore the previous value;
+restore it manually using `git config --local core.hooksPath <previous-path>`,
+or use `git config --local --unset-all core.hooksPath` to remove the local
+setting. A global or system setting may then still apply.
 
 ## License
 
 MIT License. Copyright (c) Orekiyuta.
-

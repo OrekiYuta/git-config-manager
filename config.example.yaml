@@ -33,6 +33,9 @@ proxy:
 # remote url is rewritten to embed the PAT so pushes need no interactive auth.
 # Optional `proxy: true` also writes a repo-level http/https proxy (from the
 # `proxy:` section above), scoped to that repo only (not global).
+# Optional `disable_hooks: true` points core.hooksPath at .git/no-hooks for all
+# repos in the group. Make sure that path contains no executable hooks.
+# Missing or false leaves any existing core.hooksPath unchanged.
 # link_git_configs.py also scans these paths.
 # --------------------------------------------------------------------------- #
 repos:
@@ -41,6 +44,7 @@ repos:
     email: user1@gmail.com
     pat: ghp_replace_with_real_token
     proxy: true
+    disable_hooks: false
 
   - path: /Users/elias/repo2
     name: user2

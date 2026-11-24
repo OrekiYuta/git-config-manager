@@ -14,6 +14,8 @@ PER-REPO CONFIG  (from the `repos:` list)
                               - embed the PAT into the `origin` https github url
                               - if the entry has `proxy: true`, also write a
                                 repo-level http.proxy / https.proxy (NOT global)
+                              - if `disable_hooks: true`, set core.hooksPath
+                                to .git/no-hooks for that repo
     clear_repos_config()    strip the PAT from origin urls and unset the
                             repo-level proxy (optionally user.name/email too)
     repos_config_status()   show name / email / masked origin url / repo proxy
@@ -61,6 +63,9 @@ def load_repos() -> List[Dict[str, Any]]:
         if not isinstance(entry, dict) or "path" not in entry:
             log(f"repos[{i}] is missing a 'path'; skipping", "WARN")
             continue
+        if "disable_hooks" in entry and not isinstance(entry["disable_hooks"], bool):
+            log(f"repos[{i}].disable_hooks must be a boolean", "ERROR")
+            sys.exit(1)
         valid.append(entry)
     if not valid:
         log("No usable repos entries found in config.yaml", "ERROR")
@@ -296,6 +301,16 @@ def set_repo(repo: Path, entry: Dict[str, Any], proxy_url: Optional[str],
         else:
             log("proxy: true but proxy config is incomplete; skipping", "WARN")
 
+    if entry.get("disable_hooks") is True:
+        hooks_path = ".git/no-hooks"
+        result = run_git(["config", "--local", "--replace-all", "core.hooksPath", hooks_path], repo=repo)
+        if result.returncode != 0:
+            log(f"Failed to set core.hooksPath in {repo}: {result.stderr.strip()}", "ERROR")
+            raise RuntimeError(f"Failed to disable hooks in {repo}")
+        log(f"core.hooksPath = {hooks_path}", "SET")
+        if (repo / hooks_path).exists():
+            log(f"{repo / hooks_path} exists; hooks in that path may still run", "WARN")
+
 
 def clear_repo(repo: Path, clear_user: bool = False) -> None:
     log(f"Repo: {repo}", "REPO")
@@ -354,7 +369,7 @@ def _iter_repos(action) -> None:
 
 
 def set_repos_config() -> None:
-    """Set user.name/email, embed PAT into origin, and apply repo-level proxy."""
+    """Apply per-repo identity, PAT, proxy, and optional hook settings."""
     proxy = load_proxy()
     proxy_url = build_proxy_url(proxy)
     apply_http = proxy.get("http", True)
